@@ -46,6 +46,7 @@ docker-compose up -d
 ~~~
 
 
+
 ## Código vulnerable
 ---
 
@@ -79,6 +80,9 @@ if (isset($_GET['data'])) {
 }
 
 ~~~
+
+![image](https://github.com/user-attachments/assets/2c844f65-a13d-4f95-b4cd-674f3156ca0e)
+
 
 También vamos a crear un archivo con nombre GenerarObjeto.php para visualizar los datos serializados y mostrar un enlace a MostrarObjeto.php
 
@@ -136,6 +140,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </html>
 ~~~
 
+![image](https://github.com/user-attachments/assets/4cb2640c-cb95-43b9-b51a-f102256dd70b)
+
+
 **¿Qué te permite hacer esto?**
 
 - Crear objetos User con isAdmin = true o false.
@@ -147,21 +154,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 ![](images/UD3.png)
 
+![image](https://github.com/user-attachments/assets/24fbe66a-2cff-4fbb-aa48-b6eb686ba6b5)
+
+
 Vemos como el objeto serializado sería: 
 
 
-`O:4:"User":2:{s:8:"username";s:4:"Raul";s:7:"isAdmin";b:0;}`
+`O:4:"User":2:{s:8:"username";s:6:"Mansur";s:7:"isAdmin";b:0;}`
 
 ... y nos dá el enlace parar probarlo, enviándolo a MostrarObjeto.php
 
 ~~~
-http://localhost/MostrarObjeto.php?data=O%3A4%3A%22User%22%3A2%3A%7Bs%3A8%3A%22username%22%3Bs%3A4%3A%22Raul%22%3Bs%3A7%3A%22isAdmin%22%3Bb%3A0%3B%7D
+http://localhost/MostrarObjeto.php?data=O%3A4%3A%22User%22%3A2%3A%7Bs%3A8%3A%22username%22%3Bs%3A6%3A%22Mansur%22%3Bs%3A7%3A%22isAdmin%22%3Bb%3A0%3B%7D
 ~~~
 
 Vemos cómo podemos componer la ruta para mostrar el objeto serializado conctenando:
-`http://localhost/MostrarObjeto.php?data=` con el objeto serializado, en este caso: `O:4:"User":2:{s:8:"username";s:4:"Raul";s:7:"isAdmin";b:0;}`
+`http://localhost/MostrarObjeto.php?data=` con el objeto serializado, en este caso: `O:4:"User":2:{s:8:"username";s:6:"Mansur";s:7:"isAdmin";b:0;}`
 
 ![](images/UD4.pg)
+
+![image](https://github.com/user-attachments/assets/1a62cf07-59a0-43eb-85cf-e3d700644005)
 
 
 ##  Explotación de Deserialización Insegura
@@ -186,18 +198,21 @@ Por ejemplo, el usuario Raul podría:
 El objeto serializado es: 
 
 ~~~
-MostrarObjeto.php?data=O%3A4%3A%22User%22%3A2%3A%7Bs%3A8%3A%22username%22%3Bs%3A4%3A%22Raul%22%3Bs%3A7%3A%22isAdmin%22%3Bb%3A**0**%3B%7D
+MostrarObjeto.php?data=O%3A4%3A%22User%22%3A2%3A%7Bs%3A8%3A%22username%22%3Bs%3A6%3A%22Mansur%22%3Bs%3A7%3A%22isAdmin%22%3Bb%3A0%3B%7D
 ~~~
 
 Podemos cambiar los datos del valor IsAdmin:
 
 ~~~
-MostrarObjeto.php?data=O%3A4%3A%22User%22%3A2%3A%7Bs%3A8%3A%22username%22%3Bs%3A4%3A%22Raul%22%3Bs%3A7%3A%22isAdmin%22%3Bb%3A**1**%3B%7D 
+MostrarObjeto.php?data=O%3A4%3A%22User%22%3A2%3A%7Bs%3A8%3A%22username%22%3Bs%3A6%3A%22Mansur%22%3Bs%3A7%3A%22isAdmin%22%3Bb%3A1%3B%7D 
 ~~~
 
 ![](images/UD6.png)
 
-Raul podría haber cambiado su estado, convirtiéndose en administrador.
+![image](https://github.com/user-attachments/assets/2411d861-4ce1-456f-96cc-42f1d4871c4c)
+
+
+Mansur podría haber cambiado su estado, convirtiéndose en administrador.
 
 
 **2 - Crear un archivo para crear la serialización con los datos que se deseen.**
@@ -214,31 +229,40 @@ echo urlencode(serialize(new User()));
 ?>
 ~~~
 
+![image](https://github.com/user-attachments/assets/3351d340-0ad1-46eb-abb8-4b68dd729b3f)
+
+
 Salida esperada (ejemplo):
 
 ~~~
 O%3A4%3A%22User%22%3A2%3A%7Bs%3A8%3A%22username%22%3Bs%3A6%3A%22hacker%22%3Bs%3A7%3A%22isAdmin%22%3Bb%3A1%3B%7D
 ~~~
 
+![image](https://github.com/user-attachments/assets/27a9205b-012a-41b8-8659-793c3dc62d0a)
+
+
 Este objeto serializado podemos usarlo para enviarlo a MostrarObjeto.php y así hacker sería administrador.
 
 ![](images/UD6.png)
 
+![image](https://github.com/user-attachments/assets/2411d861-4ce1-456f-96cc-42f1d4871c4c)
 
 - Copiar la salida obtenida
 
-- Acceder a esta URL en el navegador `http://localhost/MostrarObjdeto.php?data=` y concatenarla con el código obtenido:
+- Acceder a esta URL en el navegador `http://localhost/MostrarObjeto.php?data=` y concatenarla con el código obtenido:
 
 
 Al mandarlo, tendríamos el mismo resultado, Hacker se convierte en `Admin`.
 
 
 ~~~
-http://localhost/MostrarObjdeto.php?data=O%3A4%3A%22User%22%3A2%3A%7Bs%3A8%3A%22username%22%3Bs%3A6%3A%22hacker%22%3Bs%3A7%3A%22isAdmin%22%3Bb%3A1%3B%7D
+http://localhost/MostrarObjeto.php?data=O%3A4%3A%22User%22%3A2%3A%7Bs%3A8%3A%22username%22%3Bs%3A6%3A%22hacker%22%3Bs%3A7%3A%22isAdmin%22%3Bb%3A1%3B%7D
 ~~~
 
 
 ![](images/UD2.png)
+
+![image](https://github.com/user-attachments/assets/03394da4-80d5-485d-b108-28d5f09c5094)
 
 
 **Intentar RCE con __destruct()**
@@ -310,6 +334,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </html>
 
 ~~~
+
+![image](https://github.com/user-attachments/assets/41cd80d1-b351-42aa-af14-bca4e27c3026)
+
 
 Este cambio introduce:
 
@@ -387,6 +414,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </html>
 ~~~
 
+![image](https://github.com/user-attachments/assets/50173cb4-cf6c-4706-8c56-fe4a225ccb01)
+
+
 🧪 Para la prueba
 
 1. Marca "Sí" en la opción de administrador.
@@ -399,13 +429,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 ![](images/UD7.png)
 
+![image](https://github.com/user-attachments/assets/53a6d29d-dcb6-43be-9875-52ad100d4513)
+
+
 El atacante habría inyectado en la serialización la ejecución del comando `ls -l /tmp/output.txt`pero podría haber sido cualquier otro comando.
 
 ![](images/UD8.png)
 
+![image](https://github.com/user-attachments/assets/b0b3f8cd-3af3-456d-913d-04721c537a10)
+
+
 Vemos en el resultado que la ejecución no parece anómalo, pero veamos que ha pasado en el servidor.
 
 ![](images/UD9.png)
+
+![image](https://github.com/user-attachments/assets/9ebff7bf-545d-4445-8cc1-ee76aeb8d05c)
+
 
 Veamos que contiene el archivo `/tmp/output.txt`. 
 
@@ -416,6 +455,9 @@ docker exec -it lamp-php83 /bin/bash -c 'cat /tmp/output.txt'
 ~~~
 
 ![](images/UD10.png)
+
+![image](https://github.com/user-attachments/assets/7e394ac6-e968-4a45-919d-9cec3ffd1074)
+
 
 Como vemos, hemos podido ejecutar comandos dentro del servidor. En este caso con el usuario **www-data**, pero si lo combinamos con otros ataques como escalada de privilegios, podríamos haber ejecutado cualquier comando.
 
@@ -512,6 +554,7 @@ if (isset($_GET['data'])) {
 }
 ~~~
 
+![image](https://github.com/user-attachments/assets/21d48f05-adc4-4a92-a9fd-725a256f831e)
 
 
 Esta versión:
@@ -532,6 +575,9 @@ Esta versión:
 ~~~
 http://localhost/deserialize_full.php?data={"username":"hacker","isAdmin":true, "bypass":"0"}
 ~~~
+
+![image](https://github.com/user-attachments/assets/e5112850-866e-4dca-b846-8ec7f86f8349)
+
 
 Si se detecta un parámetro no permitido (bypass en este caso), se muestra el error:
 
@@ -623,6 +669,9 @@ if (isset($_GET['data'])) {
 }
 ~~~
 
+![image](https://github.com/user-attachments/assets/32576023-18aa-4047-b48a-230581cf6430)
+
+
 Vamos a crear también el archivo **GenerarObjetoJson.php** que nos creará un objeto JSON Alumno que es administrador:
 
 ~~~
@@ -635,6 +684,10 @@ $data = [
 echo urlencode(json_encode($data));
 
 ~~~
+
+![image](https://github.com/user-attachments/assets/74325b38-11df-4f60-8b41-1901aa250abe)
+
+
 🧪 Cómo probarlo
 
 - Acceder al php de generación de JSON:
@@ -642,6 +695,8 @@ echo urlencode(json_encode($data));
 ~~~
 http://localhost/GenerarObjetoJson.php
 ~~~
+
+
 
 - Objetnemos el JSON:
 
@@ -661,6 +716,9 @@ Ahora nos muestra los datos que hemos introducido. Incluso si hemos intentado in
 
 ![](images/UD13.png)
 
+![image](https://github.com/user-attachments/assets/25d875d6-f548-4bb3-a9f5-508b62111a49)
+
+
 - Y si probamos  modificando **MostrarObjetoJson.php** para que no esté incluído el comando:
 
 ~~~
@@ -668,6 +726,8 @@ class User {
     private $username;
     private $isAdmin = false;
 ~~~
+
+![image](https://github.com/user-attachments/assets/688cc1cb-278f-43da-842d-1b25057a684d)
 
 
 - Si quieres puedes utilizar el siguiente código  para crear el objeto de forma interactiva, nos mostrará el enlace a **MostrarObjetoJson.php** con el objeto.
@@ -727,6 +787,12 @@ class User {
 ~~~
 ![](images/UD14.png)
 
+![image](https://github.com/user-attachments/assets/fa9b1a26-b180-4b35-9bdb-3efc70ccfffb)
+
+![image](https://github.com/user-attachments/assets/07c851b5-fb2a-4c3b-8eeb-02b19aa4b391)
+
+
+
 ✅ Ventajas de usar JSON
 
 - No crea objetos automáticamente, por lo que no hay métodos mágicos como **__destruct()** que se ejecuten.
@@ -749,15 +815,25 @@ $data = [
 echo urlencode(json_encode($data));
 ~~~
 
+![image](https://github.com/user-attachments/assets/3ebbae1e-d996-4fa0-8450-7822fc26489b)
+
+
 Tendremos unos datos codificados,  por lo que para probar, tendríamos el siguiente enlace:
  
 ~~~
 http://localhost/MostrarObjetoJson.php?data=%7B%22username%22%3A%22alumno%22%2C%22isAdmin%22%3Atrue%2C%22cmd%22%3A%22id%22%7D
 ~~~
 
+
+
 Ahora vemos como nos da error en el caso de que intentemos meter los objetos serializados en vez de mandarlos en forma de JSON.
 
 ![](images/UD15.png)
+
+![image](https://github.com/user-attachments/assets/afb1168e-feaf-4f89-ba08-fe04c9e7c5b5)
+
+![image](https://github.com/user-attachments/assets/a7660403-6a68-40f2-8b1b-d4778925d943)
+
 
 El código no lo detecta como inválido
 
